@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#101522" />
+    <title>Live Clock</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: #101522;
+        color: #f4f6fb;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        min-height: 100vh;
+        margin: 0;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background:
+          radial-gradient(ellipse at 50% 40%, rgba(52, 94, 160, 0.3), transparent 58%),
+          #101522;
+      }
+
+      main {
+        width: min(100%, 720px);
+        padding: clamp(32px, 8vw, 72px) 24px;
+        text-align: center;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 28px;
+        background: rgba(22, 29, 44, 0.82);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+      }
+
+      .eyebrow {
+        margin: 0 0 18px;
+        color: #91a9d2;
+        font-size: 0.8rem;
+        font-weight: 700;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+      }
+
+      #clock {
+        margin: 0;
+        font-size: clamp(3.5rem, 13vw, 7.5rem);
+        font-variant-numeric: tabular-nums;
+        font-weight: 650;
+        letter-spacing: 0.04em;
+        line-height: 1.1;
+      }
+
+      #status {
+        min-height: 1.5em;
+        margin: 22px 0 0;
+        color: #aab4c7;
+        font-size: 0.95rem;
+      }
+
+      #status.error {
+        color: #ff9a9a;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <p class="eyebrow">Local time</p>
+      <h1 id="clock" aria-live="off">--:--:--</h1>
+      <p id="status" role="status">Connecting to the Python clock...</p>
+    </main>
+    <script>
+      const clock = document.querySelector("#clock");
+      const status = document.querySelector("#status");
+
+      async function updateClock() {
+        try {
+          const response = await fetch("/api/time", { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Clock server responded with ${response.status}`);
+          }
+
+          const result = await response.json();
+          clock.textContent = result.time;
+          status.textContent = "Powered by clock.py";
+          status.classList.remove("error");
+        } catch (error) {
+          status.textContent = "Can't reach the Python clock. Start it with: python clock.py";
+          status.classList.add("error");
+        }
+      }
+
+      updateClock();
+      window.setInterval(updateClock, 1000);
+    </script>
+  </body>
+</html>
